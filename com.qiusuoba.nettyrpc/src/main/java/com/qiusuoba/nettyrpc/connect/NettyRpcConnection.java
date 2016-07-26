@@ -20,9 +20,6 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.Timer;
 
 import com.qiusuoba.nettyrpc.common.Constants;
 import com.qiusuoba.nettyrpc.common.RpcContext;
@@ -62,7 +59,7 @@ public class NettyRpcConnection extends SimpleChannelHandler implements
 	private ClientBootstrap bootstrap=null;
 	
 	//处理超时事件
-	private Timer timer=null;
+//	private Timer timer=null;
 	
 	private static final ChannelFactory factory = new NioClientSocketChannelFactory(
 			Executors.newCachedThreadPool(),
@@ -121,7 +118,7 @@ public class NettyRpcConnection extends SimpleChannelHandler implements
 	public void open(boolean connectStatus) throws Throwable {
 		log.info("open start,"+getConnStr());
 		bootstrap = new ClientBootstrap(factory);
-		timer = new HashedWheelTimer();
+//		timer = new HashedWheelTimer();
 		{
 			bootstrap.setOption("tcpNoDelay", Boolean.parseBoolean(clientConfig.getTcpNoDelay()));
 			bootstrap.setOption("reuseAddress", Boolean.parseBoolean(clientConfig.getReuseAddress()));
@@ -130,13 +127,13 @@ public class NettyRpcConnection extends SimpleChannelHandler implements
 			bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 				public ChannelPipeline getPipeline() {
 					ChannelPipeline pipeline = Channels.pipeline();
-					int readTimeout = clientConfig.getReadTimeout();
-					if (readTimeout > 0) {
-						pipeline.addLast("timeout", new ReadTimeoutHandler(timer,
-								readTimeout, TimeUnit.MILLISECONDS));
-					}
-					pipeline.addLast("decoder", new RpcRequestEncode());
-					pipeline.addLast("encoder", new RpcResponseDecode());
+//					int readTimeout = clientConfig.getReadTimeout();
+//					if (readTimeout > 0) {
+//						pipeline.addLast("timeout", new ReadTimeoutHandler(timer,
+//								readTimeout, TimeUnit.MILLISECONDS));
+//					}
+					pipeline.addLast("encoder", new RpcRequestEncode());
+					pipeline.addLast("decoder", new RpcResponseDecode());
 					pipeline.addLast("handler", NettyRpcConnection.this);
 					return pipeline;
 				}
@@ -177,8 +174,7 @@ public class NettyRpcConnection extends SimpleChannelHandler implements
 				 if (System.currentTimeMillis() - lastConnectedTime > Constants.TIMEOUT_HEARTBEAT_MILLSECOND){
                      if (connected.get()==true){
                     	 connected.set(false);
-                    	 log.error("connected error,conn:"+getConnStr());
-                         return ;
+                    	 log.error("connected has loss heartbeat,conn:"+getConnStr());
                      }
                  }
 				}
@@ -248,10 +244,10 @@ public class NettyRpcConnection extends SimpleChannelHandler implements
 
 	public void close() throws Throwable {
 		connected.set(false);
-		if (null != timer) {
-			timer.stop();
-			timer = null;
-		}
+//		if (null != timer) {
+//			timer.stop();
+//			timer = null;
+//		}
 		if (null != channel) {
 			channel.close().awaitUninterruptibly();
 			channel.getFactory().releaseExternalResources();
