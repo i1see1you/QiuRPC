@@ -23,9 +23,9 @@ import com.qiusuoba.nettyrpc.util.FileUtil;
 public class ExtensionLoader {
 	 
 	private static final Log log=LogFactory.getLog(ExtensionLoader.class);
-	
+	//服务实体缓存
 	private static final ConcurrentMap<String, Object> cachedInstances = new ConcurrentHashMap<String, Object>();
-	
+
 	/**
 	 * 标示是否已经初始化
 	 */
@@ -56,6 +56,10 @@ public class ExtensionLoader {
 	
 	public static Object getProxy(String serviceName)
 	{
+		if(isInit==false)
+		{
+			init();
+		}
 		return cachedInstances.get(serviceName);
 	}
 	

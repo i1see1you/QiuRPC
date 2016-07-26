@@ -9,6 +9,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 
+import com.qiusuoba.nettyrpc.common.Constants;
+
 /**
  *响应编码
  *@Author:caimin 
@@ -22,7 +24,9 @@ public class RpcResponseEncode extends SimpleChannelHandler {
 			throws Exception {
 		RpcResponse response = (RpcResponse) e.getMessage();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(16384);
-		ProtobufSerializer.getInstance().encodeResponse(baos, response);
+		//先写入标示的魔数
+		baos.write(Constants.MAGIC_BYTES);
+		MySerializerFactory.getInstance(Constants.DEFAULT_RPC_CODE_MODE).encodeResponse(baos, response);
 		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(baos.toByteArray());
 		Channels.write(ctx, e.getFuture(), buffer);
 	}

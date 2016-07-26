@@ -1,5 +1,6 @@
 package com.qiusuoba.nettyrpc.protocol;  
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -8,7 +9,12 @@ import java.util.Date;
  *@Since:2015年9月10日  
  *@Version:
  */
-public class RpcRequest {
+public class RpcRequest implements Serializable{
+
+	/**  
+	 *   
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * 请求唯一标示

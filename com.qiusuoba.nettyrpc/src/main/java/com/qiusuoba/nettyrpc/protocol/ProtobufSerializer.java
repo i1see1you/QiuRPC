@@ -17,14 +17,14 @@ import com.qiusuoba.nettyrpc.util.SchemaCache;
  *@Since:2016年7月25日  
  *@Version:
  */
-public class ProtobufSerializer{
+public class ProtobufSerializer implements ISerializer{
 	
 	private static final ProtobufSerializer INSTANCE = new ProtobufSerializer();
 
 	private ProtobufSerializer() {
 	}
 
-	public static ProtobufSerializer getInstance() {
+	public static ISerializer getInstance() {
 		return INSTANCE;
 	}
 
@@ -35,6 +35,14 @@ public class ProtobufSerializer{
 
 	protected <T> void parseObject(byte[] bytes, T template, Schema<T> schema) {
 		ProtobufIOUtil.mergeFrom(bytes, template, schema);
+	}
+	
+	protected <T> void parseObject(InputStream in, T template, Schema<T> schema) {
+		try {
+			ProtobufIOUtil.mergeFrom(in, template, schema);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 
@@ -74,7 +82,7 @@ public class ProtobufSerializer{
 			schema = SchemaCache.getSchema(object.getClass());
 		}
 		int length = writeObject(buffer, object, schema);
-		IOUtils.writeInt(out, length);
+//		IOUtils.writeInt(out, length);
 		LinkedBuffer.writeTo(out, buffer);
 	}
 
@@ -88,10 +96,10 @@ public class ProtobufSerializer{
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <T> T decode(InputStream in, T template) throws IOException {
 		Schema schema = SchemaCache.getSchema(template.getClass());
-		int length = IOUtils.readInt(in);
-		byte[] bytes = new byte[length];
-		IOUtils.readFully(in, bytes, 0, length);
-		parseObject(bytes, template, schema);
+//		int length = IOUtils.readInt(in);
+//		byte[] bytes = new byte[length];
+//		IOUtils.readFully(in, bytes, 0, length);
+		parseObject(in, template, schema);
 		return template;
 	}
 }

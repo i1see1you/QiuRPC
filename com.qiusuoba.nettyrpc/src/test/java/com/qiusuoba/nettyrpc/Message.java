@@ -1,8 +1,9 @@
 package com.qiusuoba.nettyrpc;  
 
+import java.io.Serializable;
 import java.util.Date;
   
-public class Message {
+public class Message implements Serializable{
 	private String msg;
 	
 	private Date data;

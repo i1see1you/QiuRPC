@@ -1,14 +1,20 @@
 package com.qiusuoba.nettyrpc.protocol;  
 
+import java.io.Serializable;
+
 /**
  *协议响应实体 
  *@Author:caimin 
  *@Since:2015年9月10日  
  *@Version:
  */
-public class RpcResponse {
+public class RpcResponse implements Serializable{
 	
-	
+	/**  
+	 *   
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public RpcResponse() {
 		super();
 	}

@@ -35,7 +35,6 @@ public class InvokeFuture {
 	 */
 	public void send()
 	{
-		log.info("send,conn:"+channel.getRemoteAddress());
 		ChannelFuture writeFuture = channel.write(request);
 		boolean ret = writeFuture.awaitUninterruptibly(1000, TimeUnit.MILLISECONDS);
 		if (ret && writeFuture.isSuccess()) {
