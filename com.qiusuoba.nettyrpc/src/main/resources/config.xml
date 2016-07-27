@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 客户端配置文件 -->
 <application maxThreadCount="100">
-	<service name="poster" connectStr="poster2.service.58dns.org:16036;poster2.service.58dns.org:16036;" maxConnection="100"></service>
 	<service name="server1" connectStr="127.0.0.1:9090;127.0.0.1:8080" maxConnection="100" async="true"></service>
 <!-- 	<service name="server1" connectStr="127.0.0.1:8080" maxConnection="100" async="false"></service> -->
 </application>
