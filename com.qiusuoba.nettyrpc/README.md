@@ -1,14 +1,14 @@
 # QiuRPC
-QiuRPC 参考手册
+QiuRPC Helper
 
 
-RPC常见功能<br/>
-一个通用的网络RPC框架，它应该包括如下元素：<br/>
+RPC common features<br/>
+Common RPC framework contain these features below：<br/>
 <br/>
-1.具有服务的分层设计，借鉴Future/Service/Filter概念<br/>
-2.具有网络的分层设计，区分协议层、数据层、传输层、连接层<br/>
-3.独立的可适配的codec层，可以灵活增加HTTP，Memcache，Redis，MySQL/JDBC，Thrift等协议的支持。<br/>
-4.将多年各种远程调用High availability的经验融入在实现中，如负载均衡，failover，多副本策略，开关降级等。<br/>
+1.Service layered design , such as Future/Service/Filter etc.<br/>
+2.Network communication layered design, protocol layer, data layer, transport layer, connection layer<br/>
+3.The codec layer can be adapted,developers can add custom protocol,such as HTTP，Memcache，Redis，MySQL/JDBC，Thrift<br/>
+4.A remote procedure call abstraction with high availability,such as load-balancing/failover/clustering/automatically switch capabilities<br/>
 5.通用的远程调用实现，采用async方式来减少业务服务的开销，并通过future分离远程调用与数据流程的关注。<br/>
 6.具有状态查看及统计功能<br/>
 7.当然，最终要的是，具备以下通用的远程容错处理能力，超时、重试、负载均衡、failover……<br/>
