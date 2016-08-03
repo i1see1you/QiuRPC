@@ -1,5 +1,5 @@
 # QiuRPC
-QiuRPCHelper &nbsp;&nbsp;<a href="README_CN.md">QiuRPC中文参考手册<a>
+QiuRPCHelper &nbsp;&nbsp;<a href="/com.qiusuoba.nettyrpc/README_CN.md">QiuRPC中文参考手册<a>
 
 
 <b>RPC common features:</b><br/>
