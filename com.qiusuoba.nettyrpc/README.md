@@ -27,7 +27,7 @@ QiuRPC is a smart framework implemented by java langurage,with  only three thous
 1.      The registration center, in large projects, a project may rely on hundreds and thoudsands of services, if based on the configuration file directly,the service address will increase  maintenance costs,  the registration center can avoid this<br/>
 2.	The server proxy and client proxy are provied by java proxy currently,to improve performance,we can provied proxy by Java byte code tools,such as asm,javassit<br/>
 3.	The monitor and statistics , in order to enhance the stability and the controllability of the service, monitoring and statistics function is indispensable<br/>
-4.	At present, the protocol is the most simple protocol, only a magic number at the head and serialization entity, these need to be enhanced, such as an increase version to keep the forward compatibility<br/>
+4.	At present, the protocol is the most simple protocol, only a magic number at the head and serialization entity next, these need to be enhanced, such as an increase version to keep the forward compatibility<br/>
 5.	The reliability can be enhanced,current with only loadblance strategy, such as timeout/retry/failover etc can be added<br/>
 6.	QiuRPC is supported only java language currently,we can support other languages in future. 
 <br/>
@@ -80,7 +80,7 @@ public class Client1 {
 			for(int i=0;i<10000;i++)
 			{
 				final int f_i=i;
-				send(server1,f_i);
+				send(server1,"hello"+f_i);
 			}
 			long endMillis=System.currentTimeMillis();
 			System.out.println("spend time:"+(endMillis-startMillis));
