@@ -1,20 +1,18 @@
 # QiuRPC
-QiuRPC Helper
+QiuRPCHelper
 
 
-RPC common features<br/>
-Common RPC framework contain these features below：<br/>
-<br/>
-1.Service layered design , such as Future/Service/Filter etc.<br/>
-2.Network communication layered design, protocol layer, data layer, transport layer, connection layer<br/>
-3.The codec layer can be adapted,developers can add custom protocol,such as HTTP,Memcache,Redis,MySQL/JDBC,Thrift<br/>
-4.A remote procedure call abstraction with high availability,such as load-balancing/failover/clustering/automatically switch capabilities<br/>
-5.A network communication framework providing sync-over-async and request-response messaging<br/>
-6.With monitoring and statistical functions<br/>
+<b>RPC common features:</b><br/>
+1.Service layered design,such as Future/Service/Filter etc.<br/>
+2.Network communication layered design,protocol layer/data layer/transport layer/connection layer<br/>
+3.The codec layer can be adapted,developers can add custom protocol,such as HTTP/Memcache/Redis/MySQL/JDBC/Thrift<br/>
+4.With high availability,such as load-balancing/failover/clustering/automatically switch capabilities<br/>
+5.A network communication framework provide sync and async<br/>
+6.With monitor and statistical functions<br/>
 7.Most important is reliability and remote fault tolerance capacity, such as timeout/retry/load balance/failover etc.<br/>
 <br/>
 
-QiuRPC features<br/>
+<b>QiuRPC features</b><br/>
 
 QiuRPC is a smart framework used java langurage,with  only three thousand lines codes.Implement common functions of RPC, developers can also custom extensions, Open Source for some one to learn and discuss or used in  small project, QiuRPC has the following features current:<br/>
 1.	The server side based annotation, automatically scan all the RPC implementation on application started, can be zero configuration<br/>
@@ -25,7 +23,7 @@ QiuRPC is a smart framework used java langurage,with  only three thousand lines 
 6.	The client can call over sync or async method <br/>
 
 <br/>
-Functions need improved<br/>
+<b>Functions need improved</b><br/>
 1.      The registration center, in large projects, a project may rely on hundreds and thoudsands of services, if based on the configuration file directly,the service address will increase  maintenance costs,  the registration center can avoid this<br/>
 2.	The server proxy and client proxy are provied by java proxy currently,to improve performance,we can provied proxy by Java byte code tools,such as asm,javassit<br/>
 3.	The monitor and statistics , in order to enhance the stability and the controllability of the service, monitoring and statistics function is indispensable<br/>
