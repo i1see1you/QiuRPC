@@ -12,7 +12,7 @@ QiuRPCHelper
 7.Most important is reliable and remote fault tolerance capacity, such as timeout/retry/load balance/failover etc.<br/>
 <br/>
 
-<b>QiuRPC features</b><br/>
+<b>QiuRPC features:</b><br/>
 
 QiuRPC is a smart framework implemented by java langurage,with  only three thousand lines code.Provide common functions of RPC, developers can also custom extend, Open Source for some one to learn and discuss or used in  some java project, QiuRPC has the following features current:<br/>
 1.	The server side based annotation, automatically scan all the RPC implementation on application started, can be zero configuration<br/>
@@ -20,10 +20,10 @@ QiuRPC is a smart framework implemented by java langurage,with  only three thous
 3.	IO Reactor multiplex network model based on netty<br/>
 4.	Data serialize layer provides protobuff and Hessian implementation, you can implement the ISerializer interface to customize other<br/>
 5.      Load balancing algorithm using the smaller number of current active algorithm, you can implement the ILoadBlance interface to customize other<br/>
-6.	The client can call over sync or async method <br/>
+6.	The client can invoke over sync or async method <br/>
 
 <br/>
-<b>Non-features</b><br/>
+<b>Non-features:</b><br/>
 1.      The registration center, in large projects, a project may rely on hundreds and thoudsands of services, if based on the configuration file directly,the service address will increase  maintenance costs,  the registration center can avoid this<br/>
 2.	The server proxy and client proxy are provied by java proxy currently,to improve performance,we can provied proxy by Java byte code tools,such as asm,javassit<br/>
 3.	The monitor and statistics , in order to enhance the stability and the controllability of the service, monitoring and statistics function is indispensable<br/>
@@ -107,7 +107,7 @@ public class Client1 {
 	}
 }
 
-5.  The config file at client side
+5.  The config file at client side:
 
 
 &lt;application maxThreadCount="100"&gt;
