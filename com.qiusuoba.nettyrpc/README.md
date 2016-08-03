@@ -94,7 +94,8 @@ public class Client1 {
 		Message msg = null;
 		try
 		{
-			//Client config file used async="true",so we used future to get the async result,if configured async="false",used msg=server1.echoMsg(f_i) instead
+			//Client config file used async="true",so we used future to get the async result,
+			//if configured async="false",used msg=server1.echoMsg(f_i) instead
 			server1.echoMsg(f_i);
 			Future<Message> future = RpcContext.getContext().getFuture();
 			msg=future.get();
