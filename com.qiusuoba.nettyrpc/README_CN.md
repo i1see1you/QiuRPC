@@ -29,32 +29,24 @@ QiuRPC是一个采用JAVA实现的小巧的RPC框架，一共3K多行代码，�
 3.	增加一些监控功能，为了增强服务的稳定性和服务的可控性，监控功能是不可或缺的<br/>
 4.	目前应用协议采用的是最简单的协议，仅仅一个魔数+序列化的实体，这些需要增强，比如增加版本号以解决向前兼容性<br/>
 5.	增加High availability的一些手段，目前只有负载均衡，其他的比如failover，多副本策略，开关降级等，过载保护等需要自己实现<br/>
+6.	目前只支持java语言，后续可能会增加其他语言的支持<br/>
 <br/>
 参考例子<br/>
 
 <pre>
-
-1.	编写服务端接口
+1.	The service inteface:
 
 public interface IServer1 {
-	public String getMsg();
 	
 	public Message echoMsg(String msg);
 	
-	public Message echoMsg(int msg);
 }
 
-2.	编写服务端实现类
+2.	The service inteface implement:
 
 @ServiceAnnotation(name="myserver1")
 public class MyServer1 implements IServer1{
 	private static final Log log=LogFactory.getLog(MyServer1.class);
-	
-	public String getMsg()
-	{
-		log.info("getMsg echo");
-		return "Hello";
-	}
 
 	@Override
 	public Message echoMsg(String msg) {
@@ -64,16 +56,9 @@ public class MyServer1 implements IServer1{
 		return result;
 	}
 
-	@Override
-	public Message echoMsg(int msg) {
-		Message result=new Message();
-		result.setMsg("int:"+msg);
-		result.setData(new Date());
-		return result;
-	}
 }
 
-3.	启动服务
+3.	The service main class:
 
 public static void main(String[] args) {
 		RpcServerBootstrap bootstrap=new RpcServerBootstrap();
@@ -81,7 +66,7 @@ public static void main(String[] args) {
 	}
 
 
-4.	编写客户端调用代码
+4.	The client main class:
 
 
 public class Client1 {
@@ -93,7 +78,7 @@ public class Client1 {
 			for(int i=0;i<10000;i++)
 			{
 				final int f_i=i;
-				send(server1,f_i);
+				send(server1,"hello"+f_i);
 			}
 			long endMillis=System.currentTimeMillis();
 			System.out.println("spend time:"+(endMillis-startMillis));
@@ -107,7 +92,7 @@ public class Client1 {
 		Message msg = null;
 		try
 		{
-			//由于客户端配置的async="true"，我们用异步方式来获取结果，如果是同步方式，直接msg=server1.echoMsg(f_i)即可
+			//Client config file used async="true",so we used future to get the async result,if configured async="false",used msg=server1.echoMsg(f_i) instead
 			server1.echoMsg(f_i);
 			Future<Message> future = RpcContext.getContext().getFuture();
 			msg=future.get();
@@ -120,7 +105,7 @@ public class Client1 {
 	}
 }
 
-5.	编写客户端配置文件
+5.  The config file at client side:
 
 
 &lt;application maxThreadCount="100"&gt;
