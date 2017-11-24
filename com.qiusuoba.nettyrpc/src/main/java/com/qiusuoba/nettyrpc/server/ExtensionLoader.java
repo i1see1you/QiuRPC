@@ -66,7 +66,6 @@ public class ExtensionLoader {
 	/**
 	 * scan jars create ContractInfo
 	 * @param path
-	 * @param classLoader
 	 * @return
 	 * @throws Exception
 	 */
@@ -125,6 +124,7 @@ public class ExtensionLoader {
 		       		 {
 		       			serviceName=cls.getSimpleName();
 		       		 }
+		       		 log.info("service add success "+serviceName);
 		       		 cachedInstances.put(serviceName, instance);
 		       	 }
 		        } catch (Exception ex) {

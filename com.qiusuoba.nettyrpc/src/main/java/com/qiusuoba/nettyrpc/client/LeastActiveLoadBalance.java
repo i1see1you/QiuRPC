@@ -66,9 +66,9 @@ public class LeastActiveLoadBalance implements ILoadBlance{
 					try
 					{
 						connection=new NettyRpcConnection(conn);
+						connectionMap.put(conn, connection);
 						connection.open();
 						connection.connect();
-						connectionMap.put(conn, connection);
 					}
 					catch(Throwable e)
 					{

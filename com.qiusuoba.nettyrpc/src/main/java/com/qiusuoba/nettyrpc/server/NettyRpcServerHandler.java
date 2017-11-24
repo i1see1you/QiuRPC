@@ -1,6 +1,8 @@
 package com.qiusuoba.nettyrpc.server;  
 
 import java.lang.reflect.Method;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,6 +37,8 @@ public class NettyRpcServerHandler extends SimpleChannelUpstreamHandler {
 		this.channelGroups = channelGroups;
 	}
 
+	private static final ExecutorService WORKER_SERVICE = Executors.newFixedThreadPool(100);
+
 	@Override
 	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
@@ -47,30 +51,33 @@ public class NettyRpcServerHandler extends SimpleChannelUpstreamHandler {
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
 			throws Exception {
 		RpcRequest request = (RpcRequest) ctx.getAttachment();
-		logger.error("handle rpc request fail! request: "+request,e.getCause());
+		logger.error("handle rpc request fail! "+e.getCause());
 		e.getChannel().close().awaitUninterruptibly();
 	}
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+	public void messageReceived(ChannelHandlerContext ctx, final MessageEvent e)
 			throws Exception {
 		Object msg = e.getMessage();
 		if (!(msg instanceof RpcRequest)) {
 			logger.error("not RpcRequest received!");
 			return;
 		}
-		RpcRequest request = (RpcRequest) msg;
+		final RpcRequest request = (RpcRequest) msg;
 		ctx.setAttachment(request);
-
-		RpcResponse response = new RpcResponse(request.getRequestID());
-		try {
-			Object result = handle(request);
-			response.setResult(result);
-		} catch (Throwable t) {
-			logger.error("handle rpc request fail! request: "+request,t);
-			response.setException(t);
-		}
-		e.getChannel().write(response);
+		final RpcResponse response = new RpcResponse(request.getRequestID());
+		WORKER_SERVICE.submit(new Runnable() {
+			public void run() {
+				try {
+					Object result = handle(request);
+					response.setResult(result);
+				} catch (Throwable t) {
+					logger.error("handle rpc request fail! request: "+request,t);
+					response.setException(t);
+				}
+				e.getChannel().write(response);
+			}
+		});
 	}
 
 	private Object handle(RpcRequest request) throws Throwable {
