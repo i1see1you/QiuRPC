@@ -19,8 +19,8 @@ public class MyServer2 implements IServer1{
 	}
 	
 	public static void main(String[] args) {
-		RpcServerBootstrap bootstrap=new RpcServerBootstrap();
-		bootstrap.start(9090);
+		RpcServerBootstrap bootstrap = new RpcServerBootstrap(9090);
+		bootstrap.startAndWait();
 	}
 
 	@Override

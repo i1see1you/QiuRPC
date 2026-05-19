@@ -4,24 +4,26 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.ChannelGroupFuture;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.Timer;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 import com.qiusuoba.nettyrpc.config.ServerConfig;
 import com.qiusuoba.nettyrpc.protocol.RpcRequestDecode;
@@ -33,70 +35,85 @@ import com.qiusuoba.nettyrpc.protocol.RpcResponseEncode;
  *@Since:2015年9月10日  
  *@Version:
  */
-public class RpcServerBootstrap implements IRpcServer{
-	private Log log=LogFactory.getLog(RpcServerBootstrap.class);
+public class RpcServerBootstrap implements IRpcServer {
+	private Log log = LogFactory.getLog(RpcServerBootstrap.class);
 	
 	private ServerBootstrap bootstrap = null;
 	
+	private EventLoopGroup bossGroup;
+	private EventLoopGroup workerGroup;
+	
 	private AtomicBoolean stopped = new AtomicBoolean(false);
 	
-	//处理超时事件
-	private Timer timer=null;
+	private Channel serverChannel;
 	
-	private void initHttpBootstrap(int myport) {
-		log.info("initHttpBootstrap...........");
-		final ServerConfig serverConfig=new ServerConfig(myport);
-		final ChannelGroup channelGroup = new DefaultChannelGroup(getClass().getName());
-		bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
-				Executors.newCachedThreadPool(),
-				Executors.newCachedThreadPool(),serverConfig.getThreadCnt()));
-		//设置常见参数
-		bootstrap.setOption("tcpNoDelay","true");
-		bootstrap.setOption("reuseAddress", "true");
-		bootstrap.setOption("SO_RCVBUF",1024*128);
-		bootstrap.setOption("SO_SNDBUF",1024*128);
-		timer = new HashedWheelTimer();
-		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
-			public ChannelPipeline getPipeline() throws Exception {
-				ChannelPipeline pipeline = Channels.pipeline();
-
-				int readTimeout = serverConfig.getReadTimeout();
-				if (readTimeout > 0) {
-					pipeline.addLast("timeout", new ReadTimeoutHandler(timer,
-							readTimeout, TimeUnit.MILLISECONDS));
-				}
-
-				pipeline.addLast("decoder", new RpcRequestDecode());
-				pipeline.addLast("encoder", new RpcResponseEncode());
-				pipeline.addLast("handler", new NettyRpcServerHandler(channelGroup));
-
-				return pipeline;
-			}
-		});
+	private ChannelGroup channelGroup;
+	
+	private int port;
+	
+	public RpcServerBootstrap(int port) {
+		this.port = port;
+	}
+	
+	public void init() {
+		log.info("init RpcServerBootstrap...........");
+		final ServerConfig serverConfig = new ServerConfig(port);
+		channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 		
-		int port=serverConfig.getPort();
+		bossGroup = new NioEventLoopGroup(1);
+		workerGroup = new NioEventLoopGroup(serverConfig.getThreadCnt());
+		
+		bootstrap = new ServerBootstrap();
+		bootstrap.group(bossGroup, workerGroup)
+			.channel(NioServerSocketChannel.class)
+			.option(ChannelOption.SO_REUSEADDR, true)
+			.option(ChannelOption.SO_RCVBUF, 1024 * 128)
+			.option(ChannelOption.SO_SNDBUF, 1024 * 128)
+			.childOption(ChannelOption.TCP_NODELAY, true)
+			.childHandler(new ChannelInitializer<SocketChannel>() {
+				@Override
+				protected void initChannel(SocketChannel ch) throws Exception {
+					ChannelPipeline pipeline = ch.pipeline();
+					
+					int readTimeout = serverConfig.getReadTimeout();
+					if (readTimeout > 0) {
+						pipeline.addLast("timeout", new ReadTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS));
+					}
+					
+					pipeline.addLast("decoder", new RpcRequestDecode());
+					pipeline.addLast("encoder", new RpcResponseEncode());
+					pipeline.addLast("handler", new NettyRpcServerHandler(channelGroup));
+				}
+			});
+		
+		log.info("RpcServerBootstrap init finish");
+	}
+	
+	public void start() {
 		if (!checkPortConfig(port)) {
 			throw new IllegalStateException("port: " + port + " already in use!");
 		}
-
-		Channel channel = bootstrap.bind(new InetSocketAddress(port));
-		channelGroup.add(channel);
-		log.info("QiuRPC server started");
-
-		waitForShutdownCommand();
-		ChannelGroupFuture future = channelGroup.close();
-		future.awaitUninterruptibly();
-		bootstrap.releaseExternalResources();
-		timer.stop();
-		timer = null;
-
-		log.info("QiuRPC server stoped");
-
+		
+		try {
+			ChannelFuture future = bootstrap.bind(new InetSocketAddress(port)).sync();
+			serverChannel = future.channel();
+			channelGroup.add(serverChannel);
+			log.info("QiuRPC server started on port: " + port);
+		} catch (InterruptedException e) {
+			log.error("start server failed", e);
+			throw new RuntimeException("start server failed", e);
+		}
 	}
-	
-	public void start(int port) {
-		ExtensionLoader.init();
-		initHttpBootstrap(port);
+		
+		try {
+			ChannelFuture future = bootstrap.bind(new InetSocketAddress(port)).sync();
+			serverChannel = future.channel();
+			channelGroup.add(serverChannel);
+			log.info("QiuRPC server started on port: " + port);
+		} catch (InterruptedException e) {
+			log.error("start server failed", e);
+			throw new RuntimeException("start server failed", e);
+		}
 	}
 
 	public void stop() {
@@ -106,6 +123,36 @@ public class RpcServerBootstrap implements IRpcServer{
 		}
 	}
 	
+	public void close() {
+		log.info("closing QiuRPC server...");
+		
+		if (channelGroup != null) {
+			ChannelGroupFuture future = channelGroup.close();
+			future.awaitUninterruptibly();
+		}
+		
+		if (bossGroup != null) {
+			bossGroup.shutdownGracefully();
+		}
+		if (workerGroup != null) {
+			workerGroup.shutdownGracefully();
+		}
+		
+		log.info("QiuRPC server stopped");
+	}
+	
+	public void startAndWait() {
+		init();
+		start();
+		waitForShutdownCommand();
+		close();
+	}
+
+	public void start(int port) {
+		this.port = port;
+		startAndWait();
+	}
+
 	private void waitForShutdownCommand() {
 		synchronized (stopped) {
 			while (!stopped.get()) {
@@ -119,8 +166,7 @@ public class RpcServerBootstrap implements IRpcServer{
 	
 	private boolean checkPortConfig(int listenPort) {
 		if (listenPort < 0 || listenPort > 65536) {
-			throw new IllegalArgumentException("Invalid start port: "
-					+ listenPort);
+			throw new IllegalArgumentException("Invalid start port: " + listenPort);
 		}
 		ServerSocket ss = null;
 		DatagramSocket ds = null;

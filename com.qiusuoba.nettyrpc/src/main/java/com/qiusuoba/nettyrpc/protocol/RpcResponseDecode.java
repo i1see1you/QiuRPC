@@ -1,10 +1,11 @@
 package com.qiusuoba.nettyrpc.protocol;  
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBufferInputStream;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.frame.FrameDecoder;
+import java.util.List;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
 
 import com.qiusuoba.nettyrpc.common.Constants;
 
@@ -14,21 +15,21 @@ import com.qiusuoba.nettyrpc.common.Constants;
  *@Since:2016年7月25日  
  *@Version:
  */
-public class RpcResponseDecode  extends FrameDecoder {
+public class RpcResponseDecode extends ByteToMessageDecoder {
 
 	@Override
-	protected Object decode(ChannelHandlerContext context, Channel channel,
-			ChannelBuffer buffer) throws Exception {
-		if (buffer.readableBytes() < 2) {
-			return null;
+	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+		if (in.readableBytes() < 2) {
+			return;
 		}
-		byte byte1 = buffer.readByte();
-		byte byte2 = buffer.readByte();
-		if (byte1!=Constants.MAGIC_HIGH || byte2!=Constants.MAGIC_LOW) {
+		in.markReaderIndex();
+		byte byte1 = in.readByte();
+		byte byte2 = in.readByte();
+		if (byte1 != Constants.MAGIC_HIGH || byte2 != Constants.MAGIC_LOW) {
 			throw new RuntimeException("magic number not right");
 		}
-		ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
-		RpcResponse response = MySerializerFactory.getInstance(Constants.DEFAULT_RPC_CODE_MODE).decodeResponse(in);
-		return response;
+		ByteBufInputStream input = new ByteBufInputStream(in);
+		RpcResponse response = MySerializerFactory.getInstance(Constants.DEFAULT_RPC_CODE_MODE).decodeResponse(input);
+		out.add(response);
 	}
 }

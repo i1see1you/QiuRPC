@@ -6,12 +6,10 @@ import java.util.concurrent.Executors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.group.ChannelGroup;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.group.ChannelGroup;
 
 import com.qiusuoba.nettyrpc.protocol.RpcRequest;
 import com.qiusuoba.nettyrpc.protocol.RpcResponse;
@@ -23,48 +21,44 @@ import com.qiusuoba.nettyrpc.util.ReflectionCache;
  *@Since:2015年9月17日  
  *@Version:
  */
-public class NettyRpcServerHandler extends SimpleChannelUpstreamHandler {
+public class NettyRpcServerHandler extends ChannelInboundHandlerAdapter {
 
 	private static final Log logger = LogFactory.getLog(NettyRpcServerHandler.class);
 
-	private final ChannelGroup channelGroups;
+	private final ChannelGroup channelGroup;
 
 	public NettyRpcServerHandler() {
-		this.channelGroups = null;
+		this.channelGroup = null;
 	}
 
-	public NettyRpcServerHandler(ChannelGroup channelGroups) {
-		this.channelGroups = channelGroups;
+	public NettyRpcServerHandler(ChannelGroup channelGroup) {
+		this.channelGroup = channelGroup;
 	}
 
 	private static final ExecutorService WORKER_SERVICE = Executors.newFixedThreadPool(100);
 
 	@Override
-	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
-			throws Exception {
-		if (null != channelGroups) {
-			channelGroups.add(e.getChannel());
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		if (null != channelGroup) {
+			channelGroup.add(ctx.channel());
 		}
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
-			throws Exception {
-		RpcRequest request = (RpcRequest) ctx.getAttachment();
-		logger.error("handle rpc request fail! "+e.getCause());
-		e.getChannel().close().awaitUninterruptibly();
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		RpcRequest request = (RpcRequest) ctx.attr(ctx.alloc().attrKey("request")).get();
+		logger.error("handle rpc request fail! " + cause.getMessage(), cause);
+		ctx.close();
 	}
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, final MessageEvent e)
-			throws Exception {
-		Object msg = e.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (!(msg instanceof RpcRequest)) {
 			logger.error("not RpcRequest received!");
 			return;
 		}
 		final RpcRequest request = (RpcRequest) msg;
-		ctx.setAttachment(request);
+		ctx.attr(ctx.alloc().attrKey("request")).set(request);
 		final RpcResponse response = new RpcResponse(request.getRequestID());
 		WORKER_SERVICE.submit(new Runnable() {
 			public void run() {
@@ -72,10 +66,10 @@ public class NettyRpcServerHandler extends SimpleChannelUpstreamHandler {
 					Object result = handle(request);
 					response.setResult(result);
 				} catch (Throwable t) {
-					logger.error("handle rpc request fail! request: "+request,t);
+					logger.error("handle rpc request fail! request: " + request, t);
 					response.setException(t);
 				}
-				e.getChannel().write(response);
+				ctx.writeAndFlush(response);
 			}
 		});
 	}
@@ -89,7 +83,6 @@ public class NettyRpcServerHandler extends SimpleChannelUpstreamHandler {
 		Method method = ReflectionCache.getMethod(request.getInterfaceName(),
 				request.getMethodName(), request.getParameterTypes());
 		Object[] parameters = request.getParameters();
-		// invoke
 		Object result = method.invoke(rpcService, parameters);
 		return result;
 	}

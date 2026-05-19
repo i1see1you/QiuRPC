@@ -63,8 +63,8 @@ public class MyServer1 implements IServer1{
 3.	The service main class:
 
 public static void main(String[] args) {
-		RpcServerBootstrap bootstrap=new RpcServerBootstrap();
-		bootstrap.start(8080);
+		RpcServerBootstrap bootstrap = new RpcServerBootstrap(8080);
+		bootstrap.startAndWait();
 	}
 
 
