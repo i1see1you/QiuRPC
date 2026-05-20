@@ -31,8 +31,8 @@ QiuRPC is a smart framework implemented by java langurage,with  only three thous
 5.	The reliability can be enhanced,current with only loadblance strategy, such as timeout/retry/failover etc can be added<br/>
 6.	QiuRPC is supported only java language currently,we can support other languages in future. 
 <br/>
-
-Example:<br/>
+<br/>
+<B>Example:</B><br/>
 
 <pre>
 
