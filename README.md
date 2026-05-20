@@ -19,7 +19,7 @@ QiuRPC is a smart framework implemented by java langurage,with  only three thous
 2.	The client side  has the Filter inteface, you can implement this inteface to customize <br/>
 3.	IO Reactor multiplex network model based on netty<br/>
 4.	Data serialize layer provides protobuff and Hessian implementation, you can implement the ISerializer interface to customize other<br/>
-5.      Load balancing algorithm using the smaller number of current active algorithm, you can implement the ILoadBlance interface to customize other<br/>
+5.  Load balancing algorithm using the smaller number of current active algorithm, you can implement the ILoadBlance interface to customize other<br/>
 6.	The client can invoke method over sync or async  <br/>
 
 <br/>
